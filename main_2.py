@@ -1,118 +1,123 @@
 # game_of_life
 
+# Initialize global variables
+alive = "*"
+dead = "."
+border = "#"
+
 # Stores grid as two-dimensional array
 def storeGrid():
-    parameters = input().split()
-    numRows = int(parameters[0])
-    numCols = int(parameters[1])
-    numGens = int(parameters[2])
+    numRows, numCols, numGens = input().split()
+    numRows = int(numRows)
+    numCols = int(numCols)
+    numGens = int(numGens)
 
     initialState = []
-    for i in range(numRows):
+
+    for _ in range(numRows):
         row = input().split()
         initialState.append(row)
-        
+    
     return initialState, numRows, numCols, numGens
 
 # Extends grid to ensure no index errors when evaluating number of neighbors for each cell
 def extendGrid(state, numRows, numCols):
-    emptyList1 = []
+    emptyList = []
     for i in range(numCols + 2):
-        emptyList1.append("#")
+        emptyList.append(border)
 
-    state.insert(len(state), emptyList1)
-    state.insert(0, emptyList1)
+    state.append(emptyList.copy())
+    state.insert(0, emptyList.copy())
 
-
-    for i in range(1, len(state)):
-        state[i].insert(numCols, "#")
-        state[i].insert(0, "#")
-
-    numRows += 2
-    numCols += 2
+    for i in range(1, len(state) - 1):
+        state[i].append(border)
+        state[i].insert(0, border)
         
-    return state, numRows, numCols
+    return state, numRows + 2, numCols + 2
 
-def stripGrid(state, numRows, numCols):
+# Strips grid of outer layer to print grid
+def stripGrid(state):
+    state = state[1:-1]
 
-
-    del state[numRows - 1]
-    del state[0]
-
-    for i in range(numRows - 2):
-        del state[i][numCols - 1]
-        del state[i][0]
+    for i in range(len(state)):
+        state[i] = state[i][1:-1]
 
     return state
 
+# Prints grid
 def printGrid(state):
     for i in range(len(state)):
         for j in range(len(state[i])):
-            if j == len(state[i]) - 1:
-                print(state[i][j])
-            else:
-                print(state[i][j], end=" ")
-    
+            cell = state[i][j]
 
+            if j == len(state[i]) - 1:
+                print(cell)
+            else:
+                print(cell, end=" ")
 
 # Gets the number of live neighbors for the current cell
 def numNeighbors(state, i, j):
-    alive = state[i][j] == "*"
-    dead = state[i][j] == "."
-
-
+    cell = state[i][j]
     numLiveNeighbors = 0
+
     for h in range(i - 1, i + 2):
         for k in range(j - 1, j + 2):
-            if state[h][k] == "*": 
+            neighbor = state[h][k]
+            
+            if neighbor == alive: 
                 numLiveNeighbors += 1
 
-    if alive:
+    if cell == alive:
         return numLiveNeighbors - 1
-    if dead:
+    elif cell == dead:
         return numLiveNeighbors
 
+# Copies a given grid so as to not mutate the original
 def copyGrid(numRows, numCols):
     gridCopy = []
-    for i in range(numRows - 2):
+
+    for _ in range(numRows - 2):
         row = []
-        for j in range(numCols - 2):
-            row.append("#")
+        for _ in range(numCols - 2):
+            row.append(border)
         gridCopy.append(row)
-        row = []
 
     return gridCopy
 
+# Computes the next generation of a given state
 def computeNextGeneration(state, numRows, numCols):
     gridCopy = copyGrid(numRows, numCols)
     for i in range(1, numRows - 1):
         for j in range(1, numCols - 1):
-            alive = state[i][j] == "*"
-            dead = state[i][j] == "."
+            cell = state[i][j]
             numLiveNeighbors = numNeighbors(state, i, j)
-            if numLiveNeighbors < 2 and alive:
-                gridCopy[i - 1][j - 1] = "."
-            elif numLiveNeighbors > 3 and alive:
-                gridCopy[i - 1][j - 1] = "."
-            elif (numLiveNeighbors == 2 or numLiveNeighbors == 3) and alive:
-                gridCopy[i - 1][j - 1] = "*"
-            elif numLiveNeighbors == 3 and dead:
-                gridCopy[i - 1][j - 1] = "*"
+            
+            if numLiveNeighbors < 2 and cell == alive:
+                gridCopy[i - 1][j - 1] = dead
+            elif numLiveNeighbors > 3 and cell == alive:
+                gridCopy[i - 1][j - 1] = dead
+            elif (numLiveNeighbors == 2 or numLiveNeighbors == 3) and cell == alive:
+                gridCopy[i - 1][j - 1] = alive
+            elif numLiveNeighbors == 3 and cell == dead:
+                gridCopy[i - 1][j - 1] = alive
             else:
-                gridCopy[i - 1][j - 1] = state[i][j]
+                gridCopy[i - 1][j - 1] = cell
 
-    extendedGridCopy, n, r = extendGrid(gridCopy, numRows - 2, numCols - 2)
+    extendedGridCopy, _, _ = extendGrid(gridCopy, numRows - 2, numCols - 2)
+
     return extendedGridCopy
 
-def computeNGenerations(initialState, numRows, numCols, numGens):
+# Repeatedly computes next n generations of a given state
+def computeNGenerations(initialState, numRows, numCols, n):
     nextState = initialState
-    for i in range(numGens):
+    for _ in range(n):
         nextState = computeNextGeneration(nextState, numRows, numCols)
     
     return nextState
 
-initialState, numRows, numCols, numGens = storeGrid()
-initialState, numRows, numCols = extendGrid(initialState, numRows, numCols)
-grid = computeNGenerations(initialState, numRows, numCols, numGens)
-strippedGrid = stripGrid(grid, numRows, numCols)
+# Put it all together and print results
+initialState, numRows, numCols, n = storeGrid()
+initialStateExt, numRowsExt, numColsExt = extendGrid(initialState, numRows, numCols)
+finalState = computeNGenerations(initialStateExt, numRowsExt, numColsExt, n)
+strippedGrid = stripGrid(finalState)
 printGrid(strippedGrid)

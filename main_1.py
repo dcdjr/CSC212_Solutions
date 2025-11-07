@@ -1,14 +1,16 @@
-# sudoku_checker
+# sudoku_checker c++
 
+# Reads and stored puzzle as 2D array
 def readAndStorePuzzle():
     storedPuzzle = []
 
-    for i in range(9):
+    for _ in range(9):
         row = input().split()
         storedPuzzle.append(row)
         
     return storedPuzzle
 
+# Checks the columns to ensure they don't have duplicate digits
 def checkCols(storedPuzzle):
     length = len(storedPuzzle[0])
     seen = []
@@ -21,6 +23,7 @@ def checkCols(storedPuzzle):
                 seen.append(storedPuzzle[j][i])
     return True
 
+# Checks the rows to ensure they don't have duplicate digits
 def checkRows(storedPuzzle):
     length = len(storedPuzzle[0])
     seen = []
@@ -33,6 +36,7 @@ def checkRows(storedPuzzle):
                 seen.append(storedPuzzle[i][j])
     return True
 
+# Checks the 9 boxes to ensure they don't have duplicate digits
 def checkBoxes(storedPuzzle):
     length = len(storedPuzzle[0])
     for i in range(1, length, 3):
@@ -46,6 +50,7 @@ def checkBoxes(storedPuzzle):
                         seen.append(storedPuzzle[h][k])
     return True
 
+# Put it all together and print results
 storedPuzzle = readAndStorePuzzle()
 if checkCols(storedPuzzle) and checkRows(storedPuzzle) and checkBoxes(storedPuzzle):
     print("Solution is good!")
